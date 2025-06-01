@@ -1,34 +1,6 @@
 # Cursor Trial Reset Tool
 # This script helps reset the Cursor trial by removing relevant registry entries and files
 
-# Function to check and request admin rights
-function Test-Admin {
-    $currentUser = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-    return $currentUser.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-}
-
-# Check if running in CI environment
-$isCI = $env:CI -eq 'true' -or $env:GITHUB_ACTIONS -eq 'true'
-
-# Self-elevate the script if required (skip in CI)
-if (-not $isCI -and -not (Test-Admin)) {
-    Write-Output "Requesting administrator privileges..."
-    
-    # Create a temporary VBS script to handle elevation
-    $vbsPath = [System.IO.Path]::GetTempFileName() + ".vbs"
-    @"
-Set UAC = CreateObject("Shell.Application")
-UAC.ShellExecute "powershell.exe", "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"", "", "runas", 1
-"@ | Out-File -FilePath $vbsPath -Encoding ASCII
-
-    # Run the VBS script
-    Start-Process -FilePath "wscript.exe" -ArgumentList $vbsPath -WindowStyle Hidden -Wait
-    
-    # Clean up the VBS script
-    Remove-Item -Path $vbsPath -Force
-    exit
-}
-
 # Create logs directory if it doesn't exist
 $logDir = ".\logs"
 if (-not (Test-Path $logDir)) {
@@ -44,15 +16,8 @@ function Write-LogMessage {
     Write-Output $Message
 }
 
-# Detect OS
-$isWindows = $true  # Since we know this is running on Windows
-$isMacOS = $false
-
 Write-LogMessage "Starting Cursor reset process..."
 Write-LogMessage "Operating System: Windows"
-if ($isCI) {
-    Write-LogMessage "Running in CI environment"
-}
 
 # Create backup function
 function Backup-CursorData {
@@ -89,6 +54,16 @@ try {
             Write-Progress -Activity "Stopping Cursor processes" -Status $_.Name
             $_ | Stop-Process -Force
             Write-LogMessage "Stopped process: $($_.Name)"
+        }
+    }
+
+    # Check for admin rights only when needed for registry operations
+    $isCI = $env:CI -eq 'true' -or $env:GITHUB_ACTIONS -eq 'true'
+    if (-not $isCI) {
+        $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+        if (-not $isAdmin) {
+            Write-LogMessage "Please run this script as Administrator"
+            exit
         }
     }
 
