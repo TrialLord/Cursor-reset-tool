@@ -13,15 +13,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up PowerShell
-      uses: actions/setup-powershell@v3
-      with:
-        powershell-version: '7.0'
-    
     - name: Test PowerShell Script
+      shell: pwsh
       run: |
         # Test script syntax
-        pwsh -Command "Get-Content cursor_reset.ps1 | Out-Null"
+        Get-Content cursor_reset.ps1 | Out-Null
         
         # Test batch file syntax
         cmd /c "run_as_admin.bat"
