@@ -1,6 +1,19 @@
 # Cursor Trial Reset Tool
 # This script helps reset the Cursor trial by removing relevant registry entries and files
 
+# Function to check and request admin rights
+function Test-Admin {
+    $currentUser = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    return $currentUser.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+# Self-elevate the script if required
+if (-not (Test-Admin)) {
+    Write-Output "Requesting administrator privileges..."
+    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    exit
+}
+
 # Create logs directory if it doesn't exist
 $logDir = ".\logs"
 if (-not (Test-Path $logDir)) {
@@ -41,13 +54,6 @@ function Backup-CursorData {
 }
 
 try {
-    # Run as administrator check for Windows
-    $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-    if (-not $isAdmin) {
-        Write-LogMessage "Please run this script as Administrator"
-        exit
-    }
-
     # Define paths to backup
     $pathsToBackup = @(
         "$env:LOCALAPPDATA\Cursor",
