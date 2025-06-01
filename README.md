@@ -6,6 +6,9 @@
 
 The most reliable and safe tool for resetting your Cursor trial period. This tool is designed to work seamlessly on both Windows and macOS systems.
 
+> Current Version: v17
+> Next Release: v18
+
 ## ✨ Features
 
 - 🔄 **Complete Reset**: Removes all trial-related data
