@@ -1,0 +1,15 @@
+# Logs
+logs/
+*.log
+
+# Backups
+backup_*/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db 

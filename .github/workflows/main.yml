@@ -1,0 +1,61 @@
+name: Cursor Reset Tool CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up PowerShell
+      uses: actions/setup-powershell@v1
+      with:
+        powershell-version: '7.0'
+    
+    - name: Test PowerShell Script
+      run: |
+        # Test script syntax
+        pwsh -Command "Get-Content cursor_reset.ps1 | Out-Null"
+        
+        # Test batch file syntax
+        cmd /c "run_as_admin.bat"
+
+  test-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Test Bash Script
+      run: |
+        # Make script executable
+        chmod +x cursor_reset_mac.sh
+        # Test script syntax
+        bash -n cursor_reset_mac.sh
+
+  release:
+    needs: [test-windows, test-macos]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: Release ${{ github.sha }}
+        tag_name: v${{ github.run_number }}
+        draft: false
+        prerelease: false
+        files: |
+          cursor_reset.ps1
+          cursor_reset_mac.sh
+          run_as_admin.bat
+          README.md
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
