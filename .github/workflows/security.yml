@@ -31,12 +31,11 @@ jobs:
       shell: pwsh
       run: |
         Install-Module -Name PSScriptAnalyzer -Force
-        Invoke-ScriptAnalyzer -Path *.ps1 -Recurse -Severity Error,Warning | Format-List
-
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
-      with:
-        languages: powershell
-    
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2 
+        $results = Invoke-ScriptAnalyzer -Path *.ps1 -Recurse -Severity Error,Warning
+        if ($results) {
+          Write-Host "Found $($results.Count) issues:"
+          $results | Format-List
+          exit 1
+        } else {
+          Write-Host "No issues found"
+        } 
