@@ -10,7 +10,19 @@ function Test-Admin {
 # Self-elevate the script if required
 if (-not (Test-Admin)) {
     Write-Output "Requesting administrator privileges..."
-    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    
+    # Create a temporary VBS script to handle elevation
+    $vbsPath = [System.IO.Path]::GetTempFileName() + ".vbs"
+    @"
+Set UAC = CreateObject("Shell.Application")
+UAC.ShellExecute "powershell.exe", "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"", "", "runas", 1
+"@ | Out-File -FilePath $vbsPath -Encoding ASCII
+
+    # Run the VBS script
+    Start-Process -FilePath "wscript.exe" -ArgumentList $vbsPath -WindowStyle Hidden -Wait
+    
+    # Clean up the VBS script
+    Remove-Item -Path $vbsPath -Force
     exit
 }
 
