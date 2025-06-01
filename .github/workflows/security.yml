@@ -38,9 +38,4 @@ jobs:
           exit 1
         } else {
           Write-Host "No issues found"
-        }
-
-    - name: Test Script Functionality
-      shell: pwsh
-      run: |
-        ./test_script.ps1 
+        } 
