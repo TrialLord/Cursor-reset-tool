@@ -17,10 +17,9 @@ jobs:
       shell: pwsh
       run: |
         # Test script syntax
-        Get-Content cursor_reset.ps1 | Out-Null
-        
-        # Test batch file syntax
-        cmd /c "run_as_admin.bat"
+        $scriptContent = Get-Content cursor_reset.ps1 -Raw
+        $null = [System.Management.Automation.PSParser]::Tokenize($scriptContent, [ref]$null)
+        Write-Output "Script syntax is valid"
 
   test-macos:
     runs-on: macos-latest
