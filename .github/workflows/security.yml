@@ -2,15 +2,21 @@ name: Security Scan
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
   schedule:
     - cron: '0 0 * * 0'  # Run weekly
+  workflow_dispatch:  # Allow manual triggering
 
 jobs:
   security:
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+      pull-requests: write
     steps:
     - uses: actions/checkout@v4
     
@@ -27,7 +33,7 @@ jobs:
         reporter: github-pr-review
         path: '*.ps1'
     
-    - name: Run CodeQL Analysis
+    - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:
         languages: powershell

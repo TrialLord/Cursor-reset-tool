@@ -2,9 +2,10 @@ name: Cursor Reset Tool CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
+  workflow_dispatch:  # Allow manual triggering
 
 jobs:
   test-windows:
@@ -39,7 +40,7 @@ jobs:
 
   release:
     needs: [test-windows, test-macos]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
