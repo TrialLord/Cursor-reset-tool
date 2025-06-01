@@ -7,8 +7,11 @@ function Test-Admin {
     return $currentUser.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
-# Self-elevate the script if required
-if (-not (Test-Admin)) {
+# Check if running in CI environment
+$isCI = $env:CI -eq 'true' -or $env:GITHUB_ACTIONS -eq 'true'
+
+# Self-elevate the script if required (skip in CI)
+if (-not $isCI -and -not (Test-Admin)) {
     Write-Output "Requesting administrator privileges..."
     
     # Create a temporary VBS script to handle elevation
@@ -47,6 +50,9 @@ $isMacOS = $false
 
 Write-LogMessage "Starting Cursor reset process..."
 Write-LogMessage "Operating System: Windows"
+if ($isCI) {
+    Write-LogMessage "Running in CI environment"
+}
 
 # Create backup function
 function Backup-CursorData {
@@ -142,6 +148,8 @@ finally {
     Write-Progress -Activity "Cursor Reset" -Completed
 }
 
-# Keep the window open
-Write-Output "`nPress any key to exit..."
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown") 
+# Keep the window open only if not in CI
+if (-not $isCI) {
+    Write-Output "`nPress any key to exit..."
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+} 
