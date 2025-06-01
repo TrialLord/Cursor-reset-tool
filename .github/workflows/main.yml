@@ -8,7 +8,7 @@ on:
   workflow_dispatch:  # Allow manual triggering
 
 permissions:
-  contents: write  # Required for creating releases
+  contents: write  # Required for creating releases and deploying pages
 
 jobs:
   test-windows:
@@ -35,6 +35,19 @@ jobs:
         chmod +x cursor_reset_mac.sh
         # Test script syntax
         bash -n cursor_reset_mac.sh
+
+  deploy-pages:
+    needs: [test-windows, test-macos]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
+        publish_branch: gh-pages
 
   release:
     needs: [test-windows, test-macos]
